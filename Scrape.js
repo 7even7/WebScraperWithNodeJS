@@ -13,15 +13,22 @@ var parseCallbackedHTML = function (error, response, html) {
     console.log("Following error occurred "+ error);
   }else{
     var $ = cheerio.load(html);
-    var list = $('#listingData')
+    var list = $(".childVifUrl.tricky_link").map(function(i, obj){return obj.attribs.href}); 
     
-    console.log(list);
+    
+    
+    console.log(typeof list);
   }
 } 
 
 fetchHTMLfrom(url);
 
   /*
+  
+  Tällä JQueryllä tuli oikea lista linkkejä:
+  $(".childVifUrl.tricky_link").each(function(i, obj){console.log(obj.attribs.href)})
+  
+  
   Linkkejä
   Ohje:
   https://www.smashingmagazine.com/2015/04/web-scraping-with-nodejs/
