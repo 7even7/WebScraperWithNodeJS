@@ -90,6 +90,7 @@ getListOfCars(url);
     
     Tarvittavat tiedot:
     ID
+    Hinta (Array hinta + pvm)
     Valmistaja
     Malli
     Vuosimalli
@@ -99,6 +100,6 @@ getListOfCars(url);
     Moottoritilavuus
     Polttoaine
     Mittarilukema
-    Päivitetty-date
+    Päivitetty-date (array)
     
 */
