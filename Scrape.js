@@ -8,7 +8,7 @@ var cars = [];
 
 function Car(URL){
   this.URL=URL;
-  this.ID=URL;
+  this.ID=null;
   this.make=null;
   this.model=null;
   this.buildYear=null;
@@ -36,6 +36,8 @@ var parseResponseHTML = function (error, response, html) {
     var list = $(".childVifUrl.tricky_link").map(function(i, obj){return obj.attribs.href}); 
     for (i = 0; i<list.length;i++){
       var newCar = new Car(list[i]);
+      newCar.price = list[i];
+      
       cars.push(newCar);
     }
     writeToFile(cars);
@@ -58,48 +60,3 @@ var writeToFile = function(object){
 
 
 getListOfCars(url);
-
-  /*
-  
-  Tällä JQueryllä tuli oikea lista linkkejä:
-  $(".childVifUrl.tricky_link").each(function(i, obj){console.log(obj.attribs.href)})
-  
-  
-  Linkkejä
-  Ohje:
-  https://www.smashingmagazine.com/2015/04/web-scraping-with-nodejs/
-  
-  Ohje2:
-  https://scotch.io/tutorials/scraping-the-web-with-node-js
-  
-  Scraping laajennus scheerioon:
-  http://dailyjs.com/2015/02/05/xray/
-  
- #ToDo
-    
-    * Haetaan lista urleja
-    * Luodaan urleista olioita id = URL
-    * tallennetaan lista olioita JSONina levylle
-    * haetaan listalle hinta
-    * haetaan listalle hakuaika
-    * jos ID:llä löytyy auto, lisätään auton hakuaika (Array). Joka haulla uusi entry.
-    * haetaan auton details tiedot
-    * 
-     
-    
-    
-    Tarvittavat tiedot:
-    ID
-    Hinta (Array hinta + pvm)
-    Valmistaja
-    Malli
-    Vuosimalli
-    Rek.Nro
-    Vetotapa
-    Vaihteisto
-    Moottoritilavuus
-    Polttoaine
-    Mittarilukema
-    Päivitetty-date (array)
-    
-*/
