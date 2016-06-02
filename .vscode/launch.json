@@ -5,7 +5,7 @@
             "name": "Launch",
             "type": "node",
             "request": "launch",
-            "program": "${workspaceRoot}/Scrape.js",
+            "program": "${workspaceRoot}/Scrape_test.js",
             "stopOnEntry": false,
             "args": [],
             "cwd": "${workspaceRoot}",

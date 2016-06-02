@@ -2,7 +2,7 @@
   "name": "autohinnat_scraper",
   "version": "0.0.1",
   "description": "Scrape web",
-  "main": "Scrape.js",
+  "main": "Scrape_test.js",
   "author": "jpps",
   "dependencies": {
     "cheerio": "latest",
