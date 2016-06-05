@@ -1,10 +1,9 @@
-var fs = require('fs');
+var data = require('./DataAccess');
 var request = require('request');
 var cheerio = require('cheerio');
-var jsonfile = require('jsonfile');
-var file = './ScrapeData.json';
 var url = 'http://www.nettiauto.com/mercedes-benz/cla?id_vehicle_type=1&id_car_type=4';
-var cars = [];
+var cars =  data.load();
+console.log(cars.length);
 
 function Car(URL){
   this.URL=URL;
@@ -20,10 +19,14 @@ function Car(URL){
   this.milage=null;
   this.checkDate=[Date.now()];
   this.priceInEUR=null;
-
 }
 
-var getListOfCars = function(url){
+var getListOfCars = function(teksti){
+  console.log("toimii");
+  console.log(teksti);
+}
+
+var getListOfCars1 = function(url){
     request(url, parseResponseHTML);
 }
 
@@ -43,23 +46,8 @@ var parseResponseHTML = function (error, response, html) {
       // Push the car object to car list.
       cars.push(newCar);
     });
-  writeToFile(cars);
+    data.save(cars);
+
   }
 } 
-
-var writeToFile = function(object){
-  jsonfile.writeFile(file,object, function(err) {
-      if(err){
-        console.log(err);
-      }else{
-        console.log("Writing File is Done");  
-      }
-  })
-
-  
-}
-
-
-
-
-//getListOfCars(url);
+//getListOfCars1(url);
