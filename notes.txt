@@ -4,13 +4,19 @@
     * Haetaan lista urleja
     * Luodaan urleista olioita id = URL
     * tallennetaan lista olioita JSONina levylle
+    * haetaan uudelle auto-oliolle hinta
 #ToDo
-    * haetaan listalle hinta
-    * haetaan listalle hakuaika
-    * jos ID:llä löytyy auto, lisätään auton hakuaika (Array). Joka haulla uusi entry.
-    * haetaan auton details tiedot
-    * 
-     
+    * haetaan levyltä lista auto-olioita
+    * verrataan luotua auto-oliota listalla oleviin
+    ** jos urli löytyy
+    *** päivitetään hakuaika
+    *** tarkistetaan onko hinta muuttunut
+    **** päivitetään hinta
+    ** jos urli EI löydy
+    *** haetaan detailit
+    *** lisätään olio listalle 
+    
+    
   
   Tällä JQueryllä tuli oikea lista linkkejä:
   $(".childVifUrl.tricky_link").each(function(i, obj){console.log(obj.attribs.href)})
