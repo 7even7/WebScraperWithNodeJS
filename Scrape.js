@@ -3,7 +3,6 @@ var request = require('request');
 var cheerio = require('cheerio');
 var url = 'http://www.nettiauto.com/mercedes-benz/cla?id_vehicle_type=1&id_car_type=4';
 var cars =  data.load();
-console.log(cars.length);
 
 function Car(URL){
   this.URL=URL;
@@ -21,12 +20,19 @@ function Car(URL){
   this.priceInEUR=null;
 }
 
-var getListOfCars = function(teksti){
-  console.log("toimii");
-  console.log(teksti);
+var upsertCar = function(carObject){
+  var count = 5;
+  for (car in cars){
+    if (car.URL == carObject.URL){
+      count+=1;
+    }
+  }
+  return count;
+   
 }
 
-var getListOfCars1 = function(url){
+
+var getListOfCars = function(url){
     request(url, parseResponseHTML);
 }
 
@@ -50,4 +56,7 @@ var parseResponseHTML = function (error, response, html) {
 
   }
 } 
-//getListOfCars1(url);
+//getListOfCars(url);
+var testiAuto = new Car("http://www.nettiauto.com/mercedes-benz/cla/7746358");
+var autoja = upsertCar(testiAuto);
+console.log(autoja);
