@@ -34,19 +34,18 @@
   
 
     
-    
-    
-    Tarvittavat tiedot:
-    ID
-    Hinta (Array hinta + pvm)
-    Valmistaja
-    Malli
-    Vuosimalli
-    Rek.Nro
-    Vetotapa
-    Vaihteisto
-    Moottoritilavuus
-    Polttoaine
-    Mittarilukema
-    Päivitetty-date (array)
-    
+var testiAuto = {
+	"URL": "http://www.nettiauto.com/mercedes-benz/cla/7865857",
+	"ID": null,
+	"make": null,
+	"model": null,
+	"buildYear": null,
+	"plateNumber": null,
+	"drive": null,
+	"transmission": null,
+	"engine": null,
+	"fuelType": null,
+	"milage": null,
+	"checkDate": [1465140238522],
+	"priceInEUR": "38900"
+}

@@ -3,6 +3,18 @@ var request = require('request');
 var cheerio = require('cheerio');
 var url = 'http://www.nettiauto.com/mercedes-benz/cla?id_vehicle_type=1&id_car_type=4';
 var cars =  data.load();
+var newCars = 0;
+
+
+Array.prototype.contains = function(obj) {
+    var i = this.length;
+    while (i--) {
+        if (this[i] === obj) {
+            return true;
+        }
+    }
+    return false;
+}
 
 function Car(URL){
   this.URL=URL;
@@ -16,28 +28,24 @@ function Car(URL){
   this.engine=null;
   this.fuelType=null;
   this.milage=null;
-  this.checkDate=[Date.now()];
+  this.checkDate=[new Date().toJSON()];
   this.priceInEUR=null;
 }
 
-var upsertCar = function(carObject){
-  var count = 5;
-  for (car in cars){
-    if (car.URL == carObject.URL){
-      count+=1;
-    }
+var insertIfNewCar = function (CarObject){
+  if (!cars.contains(CarObject)){
+    cars.push(CarObject);
+    newCars+=1;
   }
-  return count;
-   
+
 }
 
 
 var getListOfCars = function(url){
-    request(url, parseResponseHTML);
+    request(url, parseCarListHTML);
 }
 
-
-var parseResponseHTML = function (error, response, html) {
+var parseCarListHTML = function (error, response, html) {
   if (error) {
     console.log("Following error occurred "+ error);
   }else{
@@ -50,13 +58,15 @@ var parseResponseHTML = function (error, response, html) {
       var newCar = new Car(url)
       newCar.priceInEUR = price.replace(/\D/g,''); 
       // Push the car object to car list.
-      cars.push(newCar);
+      insertIfNewCar(newCar);
     });
     data.save(cars);
 
   }
 } 
-//getListOfCars(url);
-var testiAuto = new Car("http://www.nettiauto.com/mercedes-benz/cla/7746358");
-var autoja = upsertCar(testiAuto);
-console.log(autoja);
+console.log("Car entries in database: "+cars.length);
+getListOfCars(url);
+console.log("New car entries: "+newCars);
+
+
+
