@@ -4,18 +4,8 @@ var cheerio = require('cheerio');
 var url = 'http://www.nettiauto.com/mercedes-benz/cla?id_vehicle_type=1&id_car_type=4';
 var cars =  data.load();
 var newCars = 0;
+var timeOfScraping = new Date().toJSON()
 
-/*
-Array.prototype.contains = function(obj) {
-    var i = this.length;
-    while (i--) {
-        if (this[i].URL == obj.URL) {
-            return true;
-        }
-    }
-    return false;
-}
-*/
 function Car(URL){
   this.URL=URL;
   this.ID=null;
@@ -28,29 +18,28 @@ function Car(URL){
   this.engine=null;
   this.fuelType=null;
   this.milage=null;
-  this.checkDate=[new Date().toJSON()];
-  this.priceInEUR=null;
+  this.firstDate=timeOfScraping;
+  this.lastDate=null;
+  this.firstPriceInEUR=null;
+  this.lastPriceInEUR=null;
 }
 
-var insertIfNewCar = function (CarObject){
+var insertOrUpdateCar = function (CarObject){
     var i = cars.length;
-    var count = 0;
-    console.log("Käsitellään auto "+ CarObject.URL)
+    var carIsNew = true;
     while(i--){
       //Jos auto löytyy, päivitetään sille uusi tarkistusaika
       if (cars[i].URL == CarObject.URL) {
-        cars[i].checkDate.push(new Date().toJSON());
-        count+=1;
-        console.log(CarObject.URL +" löytyi")
+        cars[i].lastDate=timeOfScraping;
+        cars[i].lastPriceInEUR=CarObject.firstPriceInEUR;
+        carIsNew = false;
       }
-    //Jos autoa ei löydy, lisätään se ja lisätään uusien autojen laskuriin +1           
     }
-    if (count === 0){
+    //Jos autoa ei löydy, lisätään se listalle ja uusien autojen laskuriin +1         
+    if (carIsNew){
         cars.push(CarObject);
         newCars+=1;
-        console.log(CarObject.URL +" Ei löytynyt")
     }
-    
 }
 
 
@@ -69,9 +58,9 @@ var parseCarListHTML = function (error, response, html) {
       var price = listItem.children[0].data;
       // Create a newCar Object with URL and Price properties.
       var newCar = new Car(url)
-      newCar.priceInEUR = price.replace(/\D/g,''); 
+      newCar.firstPriceInEUR = price.replace(/\D/g,''); 
       // Push the car object to car list.
-      insertIfNewCar(newCar);
+      insertOrUpdateCar(newCar);
     });
     data.save(cars);
     console.log("New car entries: "+newCars);
