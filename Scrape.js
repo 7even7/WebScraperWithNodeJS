@@ -5,7 +5,7 @@ var url = 'http://www.nettiauto.com/mercedes-benz/cla?id_vehicle_type=1&id_car_t
 var cars =  data.load();
 var newCars = 0;
 
-
+/*
 Array.prototype.contains = function(obj) {
     var i = this.length;
     while (i--) {
@@ -15,7 +15,7 @@ Array.prototype.contains = function(obj) {
     }
     return false;
 }
-
+*/
 function Car(URL){
   this.URL=URL;
   this.ID=null;
@@ -33,11 +33,24 @@ function Car(URL){
 }
 
 var insertIfNewCar = function (CarObject){
-  if (!cars.contains(CarObject)){
-    cars.push(CarObject);
-    newCars+=1;
-  }
-
+    var i = cars.length;
+    var count = 0;
+    console.log("Käsitellään auto "+ CarObject.URL)
+    while(i--){
+      //Jos auto löytyy, päivitetään sille uusi tarkistusaika
+      if (cars[i].URL == CarObject.URL) {
+        cars[i].checkDate.push(new Date().toJSON());
+        count+=1;
+        console.log(CarObject.URL +" löytyi")
+      }
+    //Jos autoa ei löydy, lisätään se ja lisätään uusien autojen laskuriin +1           
+    }
+    if (count === 0){
+        cars.push(CarObject);
+        newCars+=1;
+        console.log(CarObject.URL +" Ei löytynyt")
+    }
+    
 }
 
 
