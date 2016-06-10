@@ -24,6 +24,24 @@ function Car(URL){
   this.lastPriceInEUR=null;
 }
 
+var testiauto= {
+	"URL": "http://www.nettiauto.com/mercedes-benz/cla/8079918",
+	"ID": null,
+	"make": null,
+	"model": null,
+	"buildYear": null,
+	"plateNumber": null,
+	"drive": null,
+	"transmission": null,
+	"engine": null,
+	"fuelType": null,
+	"milage": null,
+	"firstDate": "2016-06-10T11:29:23.538Z",
+	"lastDate": null,
+	"firstPriceInEUR": "37900",
+	"lastPriceInEUR": null
+};
+
 var insertOrUpdateCar = function (CarObject){
     var i = cars.length;
     var carIsNew = true;
@@ -37,11 +55,22 @@ var insertOrUpdateCar = function (CarObject){
     }
     //Jos autoa ei löydy, lisätään se listalle ja uusien autojen laskuriin +1         
     if (carIsNew){
+        //CarObject.update();
         cars.push(CarObject);
         newCars+=1;
     }
 }
 
+var getCarDetails = function(carObject){
+  request(carObject.URL, function(error, response, html){
+    var $ = cheerio.load(html);
+
+
+  });
+  
+
+}
+//getCarDetails(testiauto);
 
 var getListOfCars = function(url){
     request(url, parseCarListHTML);
@@ -52,13 +81,18 @@ var parseCarListHTML = function (error, response, html) {
     console.log("Following error occurred "+ error);
   }else{
     var $ = cheerio.load(html);
-    var list = $(".main_price").each(function(i, listItem){
+    $(".main_price").each(function(i, listItem){
       // Scrape URL and price from car list.
       var url = listItem.parent.parent.parent.parent.parent.children[1].attribs.href;
-      var price = listItem.children[0].data;
-      // Create a newCar Object with URL and Price properties.
+       
+      // Create a newCar Object with URL
       var newCar = new Car(url)
-      newCar.firstPriceInEUR = price.replace(/\D/g,''); 
+      // update car-object with rest of the data
+      var price = listItem.children[0].data;
+      newCar.firstPriceInEUR = price.replace(/\D/g,'');
+      var makeAndModel = listItem.parent.parent.parent.children[1].children[0].data.split(' ');
+      newCar.make =  makeAndModel[0];
+      newCar.model = makeAndModel[1];
       // Push the car object to car list.
       insertOrUpdateCar(newCar);
     });
