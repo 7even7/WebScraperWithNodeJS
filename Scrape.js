@@ -9,7 +9,7 @@ var newCars = 0;
 Array.prototype.contains = function(obj) {
     var i = this.length;
     while (i--) {
-        if (this[i] === obj) {
+        if (this[i].URL == obj.URL) {
             return true;
         }
     }
@@ -61,12 +61,13 @@ var parseCarListHTML = function (error, response, html) {
       insertIfNewCar(newCar);
     });
     data.save(cars);
+    console.log("New car entries: "+newCars);
 
   }
 } 
 console.log("Car entries in database: "+cars.length);
 getListOfCars(url);
-console.log("New car entries: "+newCars);
+
 
 
 
