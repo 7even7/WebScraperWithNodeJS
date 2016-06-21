@@ -2,6 +2,7 @@ var data = require('./DataAccess');
 var request = require('request');
 var cheerio = require('cheerio');
 var url = 'http://www.nettiauto.com/mercedes-benz/cla?id_vehicle_type=1&id_car_type=4';
+var url2= 'http://www.nettiauto.com/volkswagen/golf?id_vehicle_type=1&id_car_type=3&id_fuel_type=1&id_gear_type=3&yfrom=2011&yto=2012&show_search=1&engineFrom=1.2&engineTo=1.2&mileageFrom=50000&mileageTo=125000'
 var cars =  data.load();
 var newCars = 0;
 var timeOfScraping = new Date().toJSON()
@@ -102,6 +103,7 @@ var parseCarListHTML = function (error, response, html) {
   }
 } 
 console.log("Car entries in database: "+cars.length);
+
 getListOfCars(url);
 
 
