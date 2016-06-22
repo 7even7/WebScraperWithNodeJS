@@ -2,6 +2,7 @@ var data = require('./DataAccess');
 var request = require('request');
 var cheerio = require('cheerio');
 var url = 'http://www.nettiauto.com/mercedes-benz/cla?id_vehicle_type=1&id_car_type=4';
+var url1 = 'http://www.nettiauto.com/mercedes-benz/c?id_vehicle_type=1&id_car_type=4&id_gear_type=3&yfrom=2015'
 var url2= 'http://www.nettiauto.com/volkswagen/golf?id_vehicle_type=1&id_car_type=3&id_fuel_type=1&id_gear_type=3&yfrom=2011&yto=2012&show_search=1&engineFrom=1.2&engineTo=1.2&mileageFrom=50000&mileageTo=125000'
 var cars =  data.load();
 var newCars = 0;
@@ -25,23 +26,6 @@ function Car(URL){
   this.lastPriceInEUR=null;
 }
 
-var testiauto= {
-	"URL": "http://www.nettiauto.com/mercedes-benz/cla/8079918",
-	"ID": null,
-	"make": null,
-	"model": null,
-	"buildYear": null,
-	"plateNumber": null,
-	"drive": null,
-	"transmission": null,
-	"engine": null,
-	"fuelType": null,
-	"milage": null,
-	"firstDate": "2016-06-10T11:29:23.538Z",
-	"lastDate": null,
-	"firstPriceInEUR": "37900",
-	"lastPriceInEUR": null
-};
 
 var insertOrUpdateCar = function (CarObject){
     var i = cars.length;
@@ -82,18 +66,33 @@ var parseCarListHTML = function (error, response, html) {
     console.log("Following error occurred "+ error);
   }else{
     var $ = cheerio.load(html);
-    $(".main_price").each(function(i, listItem){
+    $('div.data_box').each(function(i, listItem){
+      var a = $(this);
       // Scrape URL and price from car list.
-      var url = listItem.parent.parent.parent.parent.parent.children[1].attribs.href;
-       
+      var listItemRoot = listItem.parent.parent;
+      var URL=$('.childVifUrl.tricky_link', listItemRoot).attr('href');
       // Create a newCar Object with URL
-      var newCar = new Car(url)
+      var newCar = new Car(URL)
       // update car-object with rest of the data
-      var price = listItem.children[0].data;
-      newCar.firstPriceInEUR = price.replace(/\D/g,'');
-      var makeAndModel = listItem.parent.parent.parent.children[1].children[0].data.split(' ');
-      newCar.make =  makeAndModel[0];
-      newCar.model = makeAndModel[1];
+      newCar.firstPriceInEUR = $('.main_price',this).text().replace(/\D/g,'')
+      newCar.engine=$('.eng_size', this).text().replace(/[^0-9\.]+/g,""); 
+      // Make and model need to be parsed from the same string
+      var makeModel = $('.make_model_link', this).text().split(' ');
+      newCar.make=makeModel[0];
+      newCar.model=makeModel[1];
+      
+      // Details parsed from List items. Sometimes one of the info pieces is missing and therefore this works only is all 4 are present.
+      var otherInfo = $(this).find('li')
+      if (otherInfo.length==4){
+        newCar.buildYear=otherInfo[0].children[0].data;
+        newCar.milage=otherInfo[1].children[0].data.replace(/\D/g,'');
+        newCar.fuelType=otherInfo[2].children[0].data;
+        newCar.transmission=otherInfo[3].children[0].data;
+      }
+      
+      plateNumber=null;
+      drive=null;
+      ID=null;
       // Push the car object to car list.
       insertOrUpdateCar(newCar);
     });
@@ -104,7 +103,7 @@ var parseCarListHTML = function (error, response, html) {
 } 
 console.log("Car entries in database: "+cars.length);
 
-getListOfCars(url);
+getListOfCars(url1);
 
 
 
