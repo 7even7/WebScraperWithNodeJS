@@ -6,8 +6,9 @@
   "author": "jpps",
   "dependencies": {
     "cheerio": "latest",
+    "cheerio-tableparser": "^1.0.1",
     "jsonfile": "^2.3.1",
-    "request": "latest",
-    "mongodb": "latest"
+    "mongodb": "latest",
+    "request": "latest"
   }
 }

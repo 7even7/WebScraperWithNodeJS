@@ -1,6 +1,7 @@
 var data = require('./DataAccess');
 var request = require('request');
 var cheerio = require('cheerio');
+var cheerioTableparser = require('cheerio-tableparser');
 var url = 'http://www.nettiauto.com/mercedes-benz/cla?id_vehicle_type=1&id_car_type=4';
 var url1 = 'http://www.nettiauto.com/mercedes-benz/c?id_vehicle_type=1&id_car_type=4&id_gear_type=3&yfrom=2015'
 var url2= 'http://www.nettiauto.com/volkswagen/golf?id_vehicle_type=1&id_car_type=3&id_fuel_type=1&id_gear_type=3&yfrom=2011&yto=2012&show_search=1&engineFrom=1.2&engineTo=1.2&mileageFrom=50000&mileageTo=125000'
@@ -25,7 +26,23 @@ function Car(URL){
   this.firstPriceInEUR=null;
   this.lastPriceInEUR=null;
 }
-
+var testiauto = {
+	"URL": "http://www.nettiauto.com/mercedes-benz/c/8085672",
+	"ID": null,
+	"make": "Mercedes-Benz",
+	"model": "C",
+	"buildYear": "2015",
+	"plateNumber": null,
+	"drive": null,
+	"transmission": "Automaatti",
+	"engine": "2.1",
+	"fuelType": "Diesel",
+	"milage": "99000",
+	"firstDate": "2016-06-22T13:40:54.865Z",
+	"lastDate": null,
+	"firstPriceInEUR": "36900",
+	"lastPriceInEUR": null
+}
 
 var insertOrUpdateCar = function (CarObject){
     var i = cars.length;
@@ -38,9 +55,9 @@ var insertOrUpdateCar = function (CarObject){
         carIsNew = false;
       }
     }
-    //Jos autoa ei löydy, lisätään se listalle ja uusien autojen laskuriin +1         
+    //Jos autoa ei löydy, haetaan sen tiedot autosivulta, lisätään se listalle ja uusien autojen laskuriin +1         
     if (carIsNew){
-        //CarObject.update();
+        getCarDetails(CarObject);
         cars.push(CarObject);
         newCars+=1;
     }
@@ -48,14 +65,22 @@ var insertOrUpdateCar = function (CarObject){
 
 var getCarDetails = function(carObject){
   request(carObject.URL, function(error, response, html){
+    if (error) {
+      console.log("Following error occurred "+ error);
+  }else{
     var $ = cheerio.load(html);
-
-
+    cheerioTableparser($);
+    var dataTable = $(".data_table").parsetable(false,false,true)
+    
+    if(dataTable[0][1]=="Rek.nro"){
+      carObject.plateNumber = dataTable[1][1];
+    }
+    if(dataTable[0][2]=="Vetotapa"){
+      carObject.plateNumber = dataTable[1][2];
+    }
+   } 
   });
-  
-
 }
-//getCarDetails(testiauto);
 
 var getListOfCars = function(url){
     request(url, parseCarListHTML);
@@ -81,7 +106,7 @@ var parseCarListHTML = function (error, response, html) {
       newCar.make=makeModel[0];
       newCar.model=makeModel[1];
       
-      // Details parsed from List items. Sometimes one of the info pieces is missing and therefore this works only is all 4 are present.
+      // Details parsed from List items. Sometimes one of the info pieces is missing and therefore this works only if all 4 are present.
       var otherInfo = $(this).find('li')
       if (otherInfo.length==4){
         newCar.buildYear=otherInfo[0].children[0].data;
@@ -103,7 +128,8 @@ var parseCarListHTML = function (error, response, html) {
 } 
 console.log("Car entries in database: "+cars.length);
 
-getListOfCars(url1);
+getListOfCars(url);
+
 
 
 
