@@ -1,14 +1,49 @@
-var data = require('./DataAccess');
+var sharedEvents = require("./EventEmitter.js");
 var request = require('request');
 var cheerio = require('cheerio');
 var cheerioTableparser = require('cheerio-tableparser');
-var url = 'http://www.nettiauto.com/mercedes-benz/cla?id_vehicle_type=1&id_car_type=4';
-var url1 = 'http://www.nettiauto.com/mercedes-benz/c?id_vehicle_type=1&id_car_type=4&id_gear_type=3&yfrom=2015'
-var url2= 'http://www.nettiauto.com/volkswagen/golf?id_vehicle_type=1&id_car_type=3&id_fuel_type=1&id_gear_type=3&yfrom=2011&yto=2012&show_search=1&engineFrom=1.2&engineTo=1.2&mileageFrom=50000&mileageTo=125000'
-var cars =  data.load();
-var newCars = 0;
+var seedUrl = 'http://www.nettiauto.com/mercedes-benz/c?id_vehicle_type=1&id_car_type=4&yfrom=2015';
 var timeOfScraping = new Date().toJSON()
+var newCars;
+var file = './ScrapeData.json';
+var carsInDatabase;
+var fs = require('fs');
+var jsonfile = require('jsonfile');
+var pagesToScrape = [];
+var pagesLeft;
 
+// Logic
+sharedEvents.on("pageParsed", ()=>{
+  console.log("triggeri laukesi " + pagesLeft)
+  pagesLeft--;
+  if(pagesLeft==0){
+    writeToFile(carsInDatabase);
+    console.log("write to file kutsuttu");
+  }
+})
+
+sharedEvents.on("pageArrayReady", ()=>{
+  for(page of pagesToScrape){
+    console.log("Page " + page + " out of " +pagesToScrape.length +" is being handled")
+    getListOfCars(page);    
+  }
+  console.log("valmis");
+    
+})
+sharedEvents.on('databaseReady', doStuff);
+loadCarsFromDatabase();
+
+
+function doStuff(){
+  console.log("Starting to Do stuff")
+//  getListOfCars(url);
+  createPageArray(seedUrl);
+  
+}
+
+
+
+// Declarations
 function Car(URL){
   this.URL=URL;
   this.ID=null;
@@ -26,45 +61,49 @@ function Car(URL){
   this.firstPriceInEUR=null;
   this.lastPriceInEUR=null;
 }
-var testiauto = {
-	"URL": "http://www.nettiauto.com/mercedes-benz/c/8085672",
-	"ID": null,
-	"make": "Mercedes-Benz",
-	"model": "C",
-	"buildYear": "2015",
-	"plateNumber": null,
-	"drive": null,
-	"transmission": "Automaatti",
-	"engine": "2.1",
-	"fuelType": "Diesel",
-	"milage": "99000",
-	"firstDate": "2016-06-22T13:40:54.865Z",
-	"lastDate": null,
-	"firstPriceInEUR": "36900",
-	"lastPriceInEUR": null
+
+function loadCarsFromDatabase () {
+    carsInDatabase = jsonfile.readFileSync(file);
+    console.log("database file read");
+    sharedEvents.emit('databaseReady');
 }
 
-var insertOrUpdateCar = function (CarObject){
-    var i = cars.length;
+function writeToFile(object){
+  jsonfile.writeFile(file,object, function(err) {
+      if(err){
+        console.log(err);
+      }else{
+        console.log("Car entries in database: "+object.length);
+        console.log("Writing File is Done");
+      }
+  })
+}
+
+function insertOrUpdateCar(CarObject){
+    var i = carsInDatabase.length;  
     var carIsNew = true;
     while(i--){
-      //Jos auto löytyy, päivitetään sille uusi tarkistusaika
-      if (cars[i].URL == CarObject.URL) {
-        cars[i].lastDate=timeOfScraping;
-        cars[i].lastPriceInEUR=CarObject.firstPriceInEUR;
+      //Jos auto löytyy, 
+      if (carsInDatabase[i].URL == CarObject.URL) {
+        //päivitetään autolle tarkistusaika
+        carsInDatabase[i].lastDate=timeOfScraping;
         carIsNew = false;
+        continue;
       }
     }
-    //Jos autoa ei löydy, haetaan sen tiedot autosivulta, lisätään se listalle ja uusien autojen laskuriin +1         
+    //Jos autoa ei löydy, haetaan sen tiedot autosivulta, lisätään se tietokantaan          
     if (carIsNew){
+        //carsInDatabase.push(CarObject);
+        console.log("new car found "+CarObject.URL);
         getCarDetails(CarObject);
-        cars.push(CarObject);
-        newCars+=1;
     }
+    console.log(CarObject.URL + " " + carsInDatabase.length);
 }
 
-var getCarDetails = function(carObject){
-  request(carObject.URL, function(error, response, html){
+function getCarDetails(carObject){
+  pagesLeft++;
+  var cartobeUpdated = carObject;
+  request(cartobeUpdated.URL, function(error, response, html){
     if (error) {
       console.log("Following error occurred "+ error);
   }else{
@@ -73,20 +112,43 @@ var getCarDetails = function(carObject){
     var dataTable = $(".data_table").parsetable(false,false,true)
     
     if(dataTable[0][1]=="Rek.nro"){
-      carObject.plateNumber = dataTable[1][1];
+      cartobeUpdated.plateNumber = dataTable[1][1];
     }
     if(dataTable[0][2]=="Vetotapa"){
-      carObject.plateNumber = dataTable[1][2];
+      cartobeUpdated.drive = dataTable[1][2];
     }
+    carsInDatabase.push(cartobeUpdated);
+    console.log(carObject.URL)
+    console.log(carObject.plateNumber + " updated");
+    sharedEvents.emit("pageParsed")
    } 
   });
 }
 
-var getListOfCars = function(url){
-    request(url, parseCarListHTML);
+function createPageArray(Url){
+  request(Url, (error, response, html)=>{
+    if (error) {
+    console.log("Following error occurred "+ error);
+    }else{
+      var $ = cheerio.load(html);
+      var lastPage = $('.navigation_link')[0].children.length
+      for(i=1;i<=lastPage;i++){
+        pagesToScrape.push(Url+"&page="+i);
+      }
+      pagesLeft=lastPage;
+      sharedEvents.emit("pageArrayReady");     
+      console.log("array valmis " + pagesLeft); 
+    }
+  })
 }
 
-var parseCarListHTML = function (error, response, html) {
+
+function getListOfCars(url){
+    request(url, parseCarListPage);
+    console.log('Getlistofcars alkaa');
+}
+
+function parseCarListPage(error, response, html) {
   if (error) {
     console.log("Following error occurred "+ error);
   }else{
@@ -118,17 +180,22 @@ var parseCarListHTML = function (error, response, html) {
       plateNumber=null;
       drive=null;
       ID=null;
-      // Push the car object to car list.
+      // Hand the car over to processing
       insertOrUpdateCar(newCar);
+      
+
     });
-    data.save(cars);
-    console.log("New car entries: "+newCars);
+
+  console.log('list page parsed' )
+  sharedEvents.emit("pageParsed");
+  
 
   }
 } 
-console.log("Car entries in database: "+cars.length);
 
-getListOfCars(url);
+
+
+
 
 
 
