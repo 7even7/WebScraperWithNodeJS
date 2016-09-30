@@ -6,7 +6,8 @@ var MongoClient = require('mongodb').MongoClient;
 var MongoConnectionString = 'mongodb://crawler:crawler1!@ds023452.mlab.com:23452/crawlerdata'; 
 var carsInDatabase;
 var newCars; 
-var data;
+
+
 
 /*
 MongoClient.connect(MongoConnectionString, function (error, db) {
@@ -33,11 +34,17 @@ function getCarIDsAndPricesFromDatabase(){
   })
 }
 */
+data.data = carsInDatabase;
+
+data.load = function loadCarsFromDatabase () {
+    carsInDatabase = jsonfile.readFileSync(file);
+    console.log("database file read");
+    sharedEvents.emit('databaseReady', "tekstiä");
+}
 
 
 
-
-function insertOrUpdateCar(CarObject){
+data.insertOrUpdateCar = function insertOrUpdateCar(CarObject){
     var i = carsInDatabase.length;
     var carIsNew = true;
     while(i--){
@@ -53,9 +60,4 @@ function insertOrUpdateCar(CarObject){
         newCars.push(CarObject);
     }
 }
-
-exports.save = writeToFile;
-exports.load = readFromFile;
-exports.data = data;
-
 
