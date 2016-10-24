@@ -1,7 +1,9 @@
 // Place your settings in this file to overwrite default and user settings.
 {
-    "editor.fontSize": 18,
+    "editor.fontSize": 15,
     "editor.glyphMargin": true,
+    "editor.renderIndentGuides": true,
     "files.autoSave": "afterDelay",
     "files.autoSaveDelay": 1000
+    
 }

@@ -1,0 +1,74 @@
+
+function getCarDetails(carObject){
+  pagesLeft++;
+  var cartobeUpdated = carObject;
+  request(cartobeUpdated.URL, function(error, response, html){
+    if (error) {
+      console.log("Following error occurred "+ error);
+  }else{
+    var $ = cheerio.load(html);
+    cheerioTableparser($);
+    var dataTable = $(".data_table").parsetable(false,false,true)
+    
+    if(dataTable[0][1]=="Rek.nro"){
+      cartobeUpdated.plateNumber = dataTable[1][1];
+    }
+    if(dataTable[0][2]=="Vetotapa"){
+      cartobeUpdated.drive = dataTable[1][2];
+    }
+    carsInDatabase.push(cartobeUpdated);
+    console.log(carObject.URL)
+    console.log(carObject.plateNumber + " updated");
+    sharedEvents.emit("pageParsed")
+   } 
+  });
+}
+
+
+
+function insertOrUpdateCar(CarObject){
+    var i = carsInDatabase.length;  
+    var carIsNew = true;
+    while(i--){
+      //Jos auto löytyy, 
+      if (carsInDatabase[i].URL == CarObject.URL) {
+        //päivitetään autolle tarkistusaika
+        carsInDatabase[i].lastDate=timeOfScraping;
+        if(carsInDatabase[i].priceHistory[0][0]!==CarObject.firstPriceInEUR){
+          carsInDatabase[i].priceHistory.unshift([CarObject.firstPriceInEUR, timeOfScraping]);
+        }
+        carIsNew = false;
+        continue;
+      }
+    }
+    //Jos autoa ei löydy, haetaan sen tiedot autosivulta, lisätään se tietokantaan          
+    if (carIsNew){
+        console.log("new car found "+CarObject.URL);
+        getCarDetails(CarObject);
+    }
+    console.log(CarObject.URL + " " + carsInDatabase.length);
+}
+
+
+
+/*
+function writeToFile(object){
+  jsonfile.writeFile(file,object, function(err) {
+      if(err){
+        console.log(err);
+      }else{
+        console.log("Car entries in database: "+object.length);
+        console.log("Writing File is Done");
+      }
+  })
+}
+*/
+
+
+/*
+function loadCarsFromDatabase () {
+    carsInDatabase = jsonfile.readFileSync(file);
+    console.log("database file read");
+    sharedEvents.emit('databaseReady');
+}
+*/
